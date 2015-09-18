@@ -1,19 +1,38 @@
 angular.module('EmailApp')
-	.factory('InboxFactory', function( $http ){
-		'use strict';
+  .factory('InboxFactory', function InboxFactory ($q, $http, $location) {
+    'use strict';
+    var exports = {};
 
-		var exports = {};
+    exports.messages = [];
 
-		exports.getMessage = function() {
+    exports.goToMessage = function(id) {
+      if ( angular.isNumber(id) ) {
+        console.log('inbox/email/' + id)
+        $location.path('inbox/email/' + id)
+      }
+    }
 
-			return $http.get('json/emails.json')
-				.error(function(data) {
+    exports.deleteMessage = function (id, index) {
+      this.messages.splice(index, 1);
+    }
 
-					console.log('There was an Error!!', data);
+    exports.getMessages = function () {
 
-				});
+      var deferred = $q.defer();
 
-		};
+      return $http.get('json/emails.json')
 
-		return exports;
-	});
+        .success(function (data) {
+          exports.messages = data;
+          deferred.resolve(data);
+        })
+
+        .error(function (data) {
+          deferred.reject(data);
+        });
+
+      	return deferred.promise;
+    };
+
+    return exports;
+  });
